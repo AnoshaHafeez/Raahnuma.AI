@@ -1,0 +1,52 @@
+# Secrets – never bake into the image
+.env
+.env.*
+
+# Python cache / bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual environments
+.venv/
+venv/
+ENV/
+
+# Testing & coverage artifacts
+.pytest_cache/
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+.tox/
+.nox/
+
+# IDE & OS files
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Docs & meta files not needed at runtime
+README.md
+*.md
+
+# Docker files (avoid recursive context)
+Dockerfile
+docker-compose*.yml
+.dockerignore
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+logs/
+
+# Local SQLite databases
+*.sqlite3
+*.db

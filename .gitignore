@@ -1,0 +1,42 @@
+# ---------------------------------------------------------------------------
+# Repository-wide ignores.
+#
+# frontend/ has its own .gitignore from create-next-app (node_modules, .next,
+# .env*.local), so the rules here mostly cover the Python backend, which had
+# no ignore file at all.
+# ---------------------------------------------------------------------------
+
+# --- Secrets -----------------------------------------------------------------
+# Real credentials must never be committed. The *.example templates are the only
+# env files that belong in version control.
+.env
+.env.*
+!.env.example
+!.env.local.example
+
+# --- Python ------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+
+# --- Test / tooling artifacts ------------------------------------------------
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+
+# Legacy SQLite test database. The suite now runs against in-memory SQLite
+# (see app/tests/conftest.py), so this file should no longer appear; the rule
+# stays so an old copy can never be committed.
+test.db
+*.sqlite3
+
+# --- Editors / OS ------------------------------------------------------------
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

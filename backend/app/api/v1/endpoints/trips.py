@@ -74,6 +74,7 @@ def _trip_to_out(trip, advisory=None) -> TripOut:
         end_date=trip.end_date,
         traveler_profile=trip.traveler_profile,
         language=trip.language,
+        status=trip.status,
         created_at=trip.created_at,
         latest_advisory=adv_out,
     )
@@ -205,6 +206,22 @@ async def get_trip(
         raise HTTPException(status_code=404, detail="Trip not found.")
     if trip.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Not your trip.")
+    return _trip_to_out(trip)
+
+@router.patch("/{trip_id}/cancel", response_model=TripOut)
+async def cancel_trip(
+    trip_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    trip = await get_trip_by_id(db, trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    if trip.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your trip.")
+    trip.status = "cancelled"
+    await db.commit()
+    await db.refresh(trip)
     return _trip_to_out(trip)
 
 

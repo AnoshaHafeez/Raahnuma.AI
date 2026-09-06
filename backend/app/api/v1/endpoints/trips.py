@@ -2,10 +2,15 @@
 
 from __future__ import annotations
 
+import io
 import logging
+import textwrap
 from typing import Any
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Response, status
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.units import mm
+from reportlab.pdfgen import canvas
 from sqlalchemy import inspect as sa_inspect, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -227,3 +232,79 @@ async def get_offline_pack(
     vendor_dicts = [VendorOut.model_validate(v).model_dump() for v in vendors]
 
     return OfflinePack(trip=trip_out, advisory=adv_out, vendors=vendor_dicts)
+
+
+@router.get("/{trip_id}/itinerary/pdf")
+async def download_itinerary_pdf(
+    trip_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Return the itinerary + travel advisory as a downloadable PDF.
+
+    This is the PDF counterpart to `/offline-pack` (which stays JSON, for
+    in-app offline caching). Point the UI's "download" button at this route
+    instead.
+    """
+    trip = await get_trip_by_id(db, trip_id)
+    if not trip:
+        raise HTTPException(status_code=404, detail="Trip not found.")
+    if trip.user_id != current_user.id:
+        raise HTTPException(status_code=403, detail="Not your trip.")
+
+    advisory = _latest_advisory(trip)
+    vendors = await get_vendors_by_destination(db, trip.destination_id)
+
+    buffer = io.BytesIO()
+    pdf = canvas.Canvas(buffer, pagesize=A4)
+    width, height = A4
+    y = height - 25 * mm
+
+    def line(text: str, size: int = 11, gap: int = 7) -> None:
+        nonlocal y
+        if y < 20 * mm:
+            pdf.showPage()
+            y = height - 25 * mm
+        pdf.setFont("Helvetica", size)
+        pdf.drawString(20 * mm, y, text)
+        y -= gap * mm
+
+    line(f"Trip Itinerary — Destination #{trip.destination_id}", size=16, gap=10)
+    line(f"{trip.start_date} to {trip.end_date}")
+    y -= 3 * mm
+
+    if advisory:
+        line("Safety Advisory", size=13, gap=8)
+        for chunk in textwrap.wrap(advisory.safety_advisory_text or "N/A", 90):
+            line(chunk)
+        y -= 3 * mm
+
+        line("Packing List", size=13, gap=8)
+        for item in advisory.packing_list or []:
+            line(f"- {item}")
+        y -= 3 * mm
+
+        line("Gear Checklist", size=13, gap=8)
+        for item in advisory.gear_checklist or []:
+            line(f"- {item}")
+        y -= 3 * mm
+    else:
+        line("No advisory generated yet for this trip.")
+        y -= 3 * mm
+
+    line("Local Vendors", size=13, gap=8)
+    if vendors:
+        for vendor in vendors:
+            line(f"- {vendor.name} ({vendor.type})")
+    else:
+        line("No vendors listed for this destination.")
+
+    pdf.showPage()
+    pdf.save()
+    buffer.seek(0)
+
+    return Response(
+        content=buffer.getvalue(),
+        media_type="application/pdf",
+        headers={"Content-Disposition": f'attachment; filename="trip_{trip_id}_itinerary.pdf"'},
+    )

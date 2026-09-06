@@ -6,7 +6,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && python seed_data.py && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     healthCheckPath: /health
     envVars:
       - key: ENVIRONMENT
@@ -15,6 +15,13 @@ services:
         fromDatabase:
           name: raahnuma-db
           property: connectionString
+      - key: REDIS_URL
+        fromService:
+          name: raahnuma-cache
+          type: keyvalue
+          property: connectionString
+      - key: TRUST_PROXY_HEADERS
+        value: "true"
       - key: JWT_SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS
@@ -23,6 +30,13 @@ services:
         sync: false
       - key: GEMINI_API_KEY
         sync: false
+
+  - type: keyvalue
+    name: raahnuma-cache
+    region: oregon
+    plan: free
+    ipAllowList: []   # internal-only — only your web service (same region) needs to reach it
+    maxmemoryPolicy: allkeys-lru
 
 databases:
   - name: raahnuma-db

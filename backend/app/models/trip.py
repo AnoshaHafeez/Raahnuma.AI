@@ -20,6 +20,7 @@ class Trip(Base):
         comment="Group size, experience level, camping vs day-trip, etc.",
     )
     language: Mapped[str] = mapped_column(String(5), default="en")
+    status: Mapped[str] = mapped_column(String(20), default="active", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),

@@ -36,6 +36,7 @@ class TripOut(BaseModel):
     end_date: date
     traveler_profile: dict[str, Any]
     language: str
+    status: str
     created_at: datetime
     latest_advisory: AdvisoryOut | None = None
 

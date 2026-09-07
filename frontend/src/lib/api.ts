@@ -384,8 +384,33 @@ export const tripsApi = {
       timeoutMs: LONG_TIMEOUT_MS,
     }),
 
+  /** PATCH /api/v1/trips/{id}/cancel */
+  cancel: (tripId: number) => request<TripDTO>(`/trips/${tripId}/cancel`, { method: "PATCH" }),
+
   /** GET /api/v1/trips/{id}/offline-pack */
   offlinePack: (tripId: number) => request<OfflinePackDTO>(`/trips/${tripId}/offline-pack`),
+
+  /** GET /api/v1/trips/{id}/itinerary/pdf */
+  downloadItineraryPdf: async (tripId: number): Promise<Blob> => {
+    const response = await fetch(buildUrl(`/trips/${tripId}/itinerary/pdf`), {
+      headers: { Accept: "application/pdf" },
+      cache: "no-store",
+      credentials: "include",
+    }).catch((error) => {
+      throw new ApiError(0, `Cannot reach the server at ${API_BASE_URL}.`, error);
+    });
+
+    if (!response.ok) {
+      const payload = await response.clone().json().catch(() => null);
+      throw new ApiError(
+        response.status,
+        extractMessage(payload, "Could not download itinerary PDF."),
+        payload
+      );
+    }
+
+    return response.blob();
+  },
 };
 
 /* ----------------------------------- sos ---------------------------------- */

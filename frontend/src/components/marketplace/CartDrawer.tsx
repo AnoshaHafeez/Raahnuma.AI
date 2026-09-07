@@ -7,6 +7,7 @@ import Image from "next/image";
 import { useAppDispatch, useAppSelector } from "@/store/hooks";
 import { setCartOpen } from "@/store/slices/uiSlice";
 import { removeFromCart, updateQuantity, updateRentalDays, clearCart } from "@/store/slices/cartSlice";
+import { fetchTrips } from "@/store/slices/tripsSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCurrency } from "@/lib/utils";
@@ -41,7 +42,9 @@ export function CartDrawer() {
         payment_method: "cod", trip_id: tripId ? Number(tripId) : undefined,
         items: items.map((item) => ({ product_id: Number(item.product.id), mode: item.mode, quantity: item.quantity, rental_days: item.mode === "rent" ? item.rentalDays : 1 })),
       });
-      dispatch(clearCart()); close();
+      dispatch(clearCart());
+      dispatch(fetchTrips());
+      close();
       toast({ title: `Order #${order.id} placed`, description: `Cash on delivery confirmed. Total: ${formatCurrency(order.total_amount)}.`, variant: "success" });
     } catch (error) {
       toast({ title: "Could not place order", description: toErrorMessage(error), variant: "error" });

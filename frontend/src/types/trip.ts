@@ -43,7 +43,7 @@ export interface TripAdvisory {
   disclaimer: string;
 }
 
-export type TripStatus = "upcoming" | "active" | "completed";
+export type TripStatus = "upcoming" | "active" | "completed" | "cancelled";
 
 export interface Trip {
   /** Stringified server id; the `/trips/[tripId]` route matches on this. */

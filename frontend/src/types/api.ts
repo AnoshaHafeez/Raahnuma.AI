@@ -127,6 +127,7 @@ export interface TripDTO {
   end_date: string;
   traveler_profile: Record<string, unknown>;
   language: string;
+  status?: string;
   created_at: string;
   latest_advisory: AdvisoryDTO | null;
 }

@@ -23,7 +23,10 @@ export default function DashboardPage() {
     if (reportsStatus === "idle") dispatch(fetchReports());
   }, [reportsStatus, dispatch]);
 
-  const upcoming = React.useMemo(() => trips.filter((t) => t.status === "upcoming"), [trips]);
+  const upcoming = React.useMemo(
+    () => trips.filter((t) => t.status !== "cancelled" && t.status !== "completed"),
+    [trips]
+  );
   const activeTrip = upcoming[0] ?? trips[0];
 
   // Every figure below is derived from data the server actually returns.

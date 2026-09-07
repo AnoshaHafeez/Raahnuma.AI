@@ -160,7 +160,10 @@ function toGearChecklist(advisory: AdvisoryDTO | null): GearChecklistItem[] {
   ];
 }
 
-function toTripStatus(startDate: string, endDate: string): TripStatus {
+function toTripStatus(status: string | undefined, startDate: string, endDate: string): TripStatus {
+  const normalized = status?.toLowerCase();
+  if (normalized === "cancelled") return "cancelled";
+
   const today = new Date().toISOString().slice(0, 10);
   if (endDate < today) return "completed";
   if (startDate > today) return "upcoming";
@@ -241,7 +244,7 @@ export function toTrip(dto: TripDTO, context: TripAdapterContext = {}): Trip {
     language: dto.language,
     experienceLevel,
     activitiesCount,
-    status: toTripStatus(dto.start_date, dto.end_date),
+    status: toTripStatus(dto.status, dto.start_date, dto.end_date),
 
     currentTempC: Math.round(snapshot.temperatureC ?? 0),
     feelsLikeC: Math.round(snapshot.apparentC ?? snapshot.temperatureC ?? 0),

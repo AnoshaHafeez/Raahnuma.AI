@@ -32,7 +32,8 @@ function TripRow({ trip }: { trip: Trip }) {
             "rounded-full px-2.5 py-1 text-xs font-medium capitalize",
             trip.status === "upcoming" && "bg-primary/10 text-primary",
             trip.status === "active" && "bg-accent/15 text-accent",
-            trip.status === "completed" && "bg-secondary text-muted-foreground"
+            trip.status === "completed" && "bg-secondary text-muted-foreground",
+            trip.status === "cancelled" && "bg-muted text-muted-foreground"
           )}
         >
           {trip.status}
@@ -47,8 +48,9 @@ export default function TripsPage() {
   const dispatch = useAppDispatch();
   const { trips, status, error } = useAppSelector((s) => s.trips);
 
-  const upcoming = trips.filter((t) => t.status === "upcoming");
+  const upcoming = trips.filter((t) => t.status !== "cancelled" && t.status !== "completed");
   const completed = trips.filter((t) => t.status === "completed");
+  const cancelled = trips.filter((t) => t.status === "cancelled");
 
   return (
     <div className="space-y-6">
@@ -98,6 +100,7 @@ export default function TripsPage() {
             <TabsTrigger value="all">All ({trips.length})</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming ({upcoming.length})</TabsTrigger>
             <TabsTrigger value="completed">Completed ({completed.length})</TabsTrigger>
+            <TabsTrigger value="cancelled">Cancelled ({cancelled.length})</TabsTrigger>
           </TabsList>
 
           <TabsContent value="all" className="space-y-3">
@@ -114,6 +117,12 @@ export default function TripsPage() {
               <p className="py-8 text-center text-sm text-muted-foreground">No completed trips yet.</p>
             )}
             {completed.map((trip) => <TripRow key={trip.id} trip={trip} />)}
+          </TabsContent>
+          <TabsContent value="cancelled" className="space-y-3">
+            {cancelled.length === 0 && (
+              <p className="py-8 text-center text-sm text-muted-foreground">No cancelled trips.</p>
+            )}
+            {cancelled.map((trip) => <TripRow key={trip.id} trip={trip} />)}
           </TabsContent>
         </Tabs>
       )}

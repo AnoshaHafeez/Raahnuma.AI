@@ -34,7 +34,7 @@ export default function SosPage() {
 
   // The trip whose itinerary is attached to the alert: the soonest upcoming one.
   const activeTrip = React.useMemo(
-    () => trips.find((trip) => trip.status === "upcoming") ?? trips[0],
+    () => trips.find((trip) => trip.status !== "cancelled" && trip.status !== "completed") ?? trips[0],
     [trips]
   );
 
